@@ -1,7 +1,7 @@
 """Chris Deotts Learning rate optimization technique automatized
 Source: https://www.kaggle.com/competitions/hms-harmful-brain-activity-classification/discussion/488083#2727164
 Actually there is a small difference in my implementation to Chris description: This program does not train one more epoch then the best val loss, it trains until it gets the best val loss and then reduces the lr by 10
-ALso i want to say a HUGE thank you to Chris Deotte for all his contributions to HMS brain Activity Classification, which where all very informative and helped me grow as a Data Scientist"""
+Also I want to say a HUGE thank you to Chris Deotte for all his contributions to HMS brain Activity Classification, which where all very informative and helped me grow as a Data Scientist"""
 import os
 import uuid
 
