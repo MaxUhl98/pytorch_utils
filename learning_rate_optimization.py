@@ -78,7 +78,7 @@ def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoad
     reset_weight_path = f'{run_id}.pth'
     torch.save(model.state_dict(), reset_weight_path)
     logger = get_logger(f'LR_TEST_{run_id}')
-    logger.log(f'Starting lr optimization run with ID {run_id}')
+    logger.info(f'Starting lr optimization run with ID {run_id}')
     lr_data = {}
     best_val = (10 ** 10, -1)
     for lr in tested_lr_list:
