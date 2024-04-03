@@ -51,7 +51,7 @@ def reset_model(model: nn.Module, reset_weight_path: str) -> None:
 
 
 def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoader, test_loader: DataLoader,
-                       loss_fn: nn.Module, max_epochs: int = 15, tested_lr_list=None, patience: int = 3,
+                       loss_fn: nn.Module, logger: logging.Logger, max_epochs: int = 15, tested_lr_list=None, patience: int = 3,
                        device: Union[str, torch.device] = 'cuda') -> Tuple[float, List[float]]:
     """Tests all initial learning rates out of tested_lr_list
     (default=[1e-6, 5e-6, 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2])
@@ -77,7 +77,7 @@ def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoad
     run_id = uuid.uuid1()
     reset_weight_path = f'{run_id}.pth'
     torch.save(model.state_dict(), reset_weight_path)
-    logger = get_logger(f'LR_TEST_{run_id}')
+    #logger = get_logger(f'LR_TEST_{run_id}')
     logger.info(f'Starting lr optimization run with ID {run_id}')
     lr_data = {}
     best_val = (10 ** 10, -1)
@@ -96,8 +96,8 @@ def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoad
 
 def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
                   train_loader: DataLoader, test_loader: DataLoader,
-                  loss_fn: nn.Module, patience: int = 5,
-                  device: Union[str, torch.device] = 'cuda', divisor: int = 10) -> Tuple[Dict[float,int], float]:
+                  loss_fn: nn.Module, logger: logging.Logger, patience: int = 5,
+                  device: Union[str, torch.device] = 'cuda', divisor: int = 10) -> Tuple[Dict[float, int], float]:
     """Uses a given learning rate to determine the steps at which the learning rate should be decayed.
     Uses trains the model using hte optimizer declared at optim with the data inside train_loader as training data and
      uses the data inside val_loader as validation data. Calculates the losses with the loss_fn.
@@ -120,7 +120,7 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
     run_id = uuid.uuid1()
     reset_weight_path = f'D:/models/HMS/{run_id}.pth'
     torch.save(model.state_dict(), reset_weight_path)
-    logger = get_logger(f'LR_TEST_{run_id}')
+    # logger = get_logger(f'LR_TEST_{run_id}')
     logger.info(f'Starting lr-step trial with ID: {run_id}')
     optimizer = optim(model.parameters(), lr=lr)
     best_val = 10 ** 10
@@ -166,8 +166,10 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
 
 
 def optimize_model_learning_rate(model: nn.Module, optim: Callable, train_loader: DataLoader, test_loader: DataLoader,
-                                 loss_fn: nn.Module, max_epochs: int = 15, tested_lr_list=None, patience: int = 3,
-                                 device: Union[str, torch.device] = 'cuda', divisor:int=10) -> Tuple[Dict[float,int], float]:
+                                 loss_fn: nn.Module, logger: logging.Logger, max_epochs: int = 15, tested_lr_list=None,
+                                 patience: int = 3,
+                                 device: Union[str, torch.device] = 'cuda', divisor: int = 10) -> Tuple[
+    Dict[float, int], float]:
     """Finds the best initial learning rate and
 
     :param model: Model for which the learning rate schedule shall be determined
@@ -184,11 +186,11 @@ def optimize_model_learning_rate(model: nn.Module, optim: Callable, train_loader
     lr, best_lr_epochs = find_best_start_lr(model=model, train_loader=train_loader, test_loader=test_loader,
                                             optim=optim,
                                             loss_fn=loss_fn, max_epochs=max_epochs, tested_lr_list=tested_lr_list,
-                                            patience=patience, device=device)
+                                            patience=patience, device=device, logger=logger)
     best_steps, best_value = find_lr_steps(lr, model=model, train_loader=train_loader, test_loader=test_loader,
-                                            optim=optim,
-                                            loss_fn=loss_fn,
-                                            patience=patience, device=device,divisor=divisor)
+                                           optim=optim,
+                                           loss_fn=loss_fn,
+                                           patience=patience, device=device, divisor=divisor, logger=logger)
     return best_steps, best_value
 
 
@@ -245,13 +247,13 @@ if __name__ == '__main__':
 
     # Find best initial leraning rate
     lr, results = find_best_start_lr(model=model, optim=optim, train_loader=train_loader, test_loader=test_loader,
-                                    loss_fn=loss_fn)
+                                    loss_fn=loss_fn, logger=logger)
     logger.info(f'best starting LR found is {lr}/nAll results:{results}')
 
     # Find best learning rate steps
     steps, best_loss = find_lr_steps(0.001, model=model, optim=optim, train_loader=train_loader,
                                      test_loader=test_loader,
-                                     loss_fn=loss_fn)
+                                     loss_fn=loss_fn, logger=logger)
     logger.info(f'Reached best val_loss:{best_loss} with steps: {steps}')
 
     # Maybe i will also implement trials for cosine schedules in the future
