@@ -210,16 +210,21 @@ if __name__ == '__main__':
 
     # data = GenericData(df=df, data_dict=specs, expected_shape=spectrogram_expected_shape)
 
-    # Create Optimizer and LR-Scheduler
+    # Create Optimizer 
     optim = torch.optim.AdamW
-    # optim = CosineAnnealingWarmRestarts(optimizer=optim, **Config.cosanneal_res_params)
 
     # Define Loss Function
     loss_fn = torch.nn.KLDivLoss(reduction='batchmean')
-    # lr, results = find_best_start_lr(model=model, optim=optim, train_loader=train_loader, test_loader=test_loader,
-    #                                 loss_fn=loss_fn)
-    # logger.info(f'best starting LR found is {lr}/nAll results:{results}')
+
+    # Find best initial leraning rate
+    lr, results = find_best_start_lr(model=model, optim=optim, train_loader=train_loader, test_loader=test_loader,
+                                    loss_fn=loss_fn)
+    logger.info(f'best starting LR found is {lr}/nAll results:{results}')
+
+    # Find best learning rate steps
     steps, best_loss = find_lr_steps(0.001, model=model, optim=optim, train_loader=train_loader,
                                      test_loader=test_loader,
                                      loss_fn=loss_fn)
     logger.info(f'Reached best val_loss:{best_loss} with steps: {steps}')
+
+    # Maybe i will also implement trials for cosine schedules in the future
