@@ -1,11 +1,9 @@
 # pytorch_utils
 UtilityScripts and Functions for Pytorch 
 
-I created this Functions while taking the ZTM Pytorch Deep Learning course.
+engine.py contains complete training loops, kfold training loops and two staged staged kfold trianing loops
 
-engine.py contains complete training loops 
-
-helpers.py contains visuallization, analysis and data related functions 
+helpers.py contains visuallization, analysis, data related functions and logging helpers
 
 train_helpers.py contains training related functions 
 
