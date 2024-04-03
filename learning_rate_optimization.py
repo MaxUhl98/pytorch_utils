@@ -97,7 +97,7 @@ def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoad
 def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
                   train_loader: DataLoader, test_loader: DataLoader,
                   loss_fn: nn.Module, patience: int = 5,
-                  device: Union[str, torch.device] = 'cuda', divisor: int = 10):
+                  device: Union[str, torch.device] = 'cuda', divisor: int = 10) -> Tuple[Dict[float,int], float]:
     """Uses a given learning rate to determine the steps at which the learning rate should be decayed.
     Uses trains the model using hte optimizer declared at optim with the data inside train_loader as training data and
      uses the data inside val_loader as validation data. Calculates the losses with the loss_fn.
@@ -109,12 +109,12 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
     :param train_loader: DataLoader containing the training data
     :param test_loader: DataLoader containing the validation data
     :param loss_fn: FUnctions used to calculate the losses
-    :param patience: A trial will get canceled if the validation loss did not improve in the last patience steps
+    :param patience: A trial will get canceled if the validation loss did not improve during the last patience steps
+    during the last global patience steps
     :param device: Pytorch Device to train the model on
     :param divisor: Number the learning rate will get divided by if it did not improve the val loss in the last patience steps
-    :return: Dictionary containing the learning rates and the number of last epoch in the trial where they reduced the val loss
-    """
-    global_patience = 2*patience
+    :return: :return: Dictionary containing {learning rate: epoch number it should be used last}, best val loss"""
+    global_patience = 2 * patience
     assert patience >= 1, AssertionError(
         f'We need a patience of at least 1 for this method, because the model 1 training epoch after the best will get taken for the next lr decay trial')
     run_id = uuid.uuid1()
@@ -138,7 +138,7 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
             train_val = train_step(model, train_loader, loss_fn, optimizer, device, False, logger)
             val = test_step(model, test_loader, loss_fn, device)
             logger.info(
-                f"Learning Rate: {lr} | "
+                f"Learning Rate: {lr:.4f} | "
                 f"train_loss: {train_val:.4f} | "
                 f"val_loss: {val:.4f} | "
             )
@@ -163,6 +163,33 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
         reset_model(model, reset_weight_path)
         lr_step_dict[lr] = total_count
         lr /= divisor
+
+
+def optimize_model_learning_rate(model: nn.Module, optim: Callable, train_loader: DataLoader, test_loader: DataLoader,
+                                 loss_fn: nn.Module, max_epochs: int = 15, tested_lr_list=None, patience: int = 3,
+                                 device: Union[str, torch.device] = 'cuda', divisor:int=10) -> Tuple[Dict[float,int], float]:
+    """Finds the best initial learning rate and
+
+    :param model: Model for which the learning rate schedule shall be determined
+    :param optim: Optimizer used for model training
+    :param train_loader: DataLoader containing the training data
+    :param test_loader: DataLoader containing the validation data
+    :param loss_fn: FUnctions used to calculate the losses
+    :param patience: A trial will get canceled if the validation loss did not improve during the last patience steps
+    during the last global patience steps
+    :param device: Pytorch Device to train the model on
+    :param divisor: Number the learning rate will get divided by if it did not improve the val loss in the last patience steps
+    :return: Dictionary containing {learning rate: epoch number it should be used last}, best val loss
+    """
+    lr, best_lr_epochs = find_best_start_lr(model=model, train_loader=train_loader, test_loader=test_loader,
+                                            optim=optim,
+                                            loss_fn=loss_fn, max_epochs=max_epochs, tested_lr_list=tested_lr_list,
+                                            patience=patience, device=device)
+    best_steps, best_value = find_lr_steps(lr, model=model, train_loader=train_loader, test_loader=test_loader,
+                                            optim=optim,
+                                            loss_fn=loss_fn,
+                                            patience=patience, device=device,divisor=divisor)
+    return best_steps, best_value
 
 
 if __name__ == '__main__':
