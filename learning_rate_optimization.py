@@ -101,7 +101,7 @@ def find_best_start_lr(model: nn.Module, optim: Callable, train_loader: DataLoad
 
 def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
                   train_loader: DataLoader, test_loader: DataLoader,
-                  loss_fn: nn.Module, patience: int = 5,global_patience:int=20,
+                  loss_fn: nn.Module, patience: int = 5,
                   device: Union[str, torch.device] = 'cuda', divisor: int = 10):
     """Uses a given learning rate to determine the steps at which the learning rate should be decayed.
     Uses trains the model using hte optimizer declared at optim with the data inside train_loader as training data and
@@ -119,6 +119,7 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
     :param divisor: Number the learning rate will get divided by if it did not improve the val loss in the last patience steps
     :return: Dictionary containing the learning rates and the number of last epoch in the trial where they reduced the val loss
     """
+    global_patience = 2*patience
     assert patience >= 1, AssertionError(
         f'We need a patience of at least 1 for this method, because the model 1 training epoch after the best will get taken for the next lr decay trial')
     run_id = uuid.uuid1()
