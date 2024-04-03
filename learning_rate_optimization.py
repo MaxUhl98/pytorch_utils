@@ -134,7 +134,7 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
     total_count = 0
     global_patience_count = 0
     lr_step_dict = {}
-    #save_next = False
+    save_next = False
     go_big = True
 
     while go_big:
@@ -147,9 +147,9 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
                 f"train_loss: {train_val:.4f} | "
                 f"val_loss: {val:.4f} | "
             )
-            #if save_next:
-            #    torch.save(model.state_dict(), reset_weight_path)
-            #    save_next = False
+            if save_next:
+                torch.save(model.state_dict(), reset_weight_path)
+                save_next = False
             if val < best_val:
                 best_val = val
                 cnt = 0
@@ -157,7 +157,7 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
                     global_best_val = val
                     torch.save(model.state_dict(), reset_weight_path)
                     global_patience_count = 0
-                    #save_next = True
+                    save_next = True
             if cnt == patience:
                 go = False
             if global_patience_count == global_patience:
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     model = SelfNet(**model_kwargs)
     logger = get_logger(name)
     df = pd.read_csv(Config.train_path)
-    df = prepare_train(df).head(1000)
+    df = prepare_train(df)
 
     # Nearly 80-20 split using patient ids
     df_train, df_test = df.loc[df.patient_id > 14000], df.loc[df.patient_id <= 14000]
