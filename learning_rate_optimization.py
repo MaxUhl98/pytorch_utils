@@ -8,12 +8,7 @@ from torch import nn
 from typing import Optional, Union, Dict, Any, Callable, Iterable, Tuple, List
 from engine import train, train_step, test_step
 from torch.utils.data import DataLoader
-from helpers import get_logger
-import numpy as np
-from _config import Config
-import pandas as pd
-from SelfNet import SelfNet
-from data_generator import GenericData, prepare_train
+
 
 def get_logger(name:str, base_filepath:str='logs/model_experiments') -> logging.Logger:
     """Creates a logging.Logger object that writes a logfile named name.log into the folder at base_filepath
@@ -171,7 +166,11 @@ def find_lr_steps(lr: float, model: nn.Module, optim: Callable,
 
 
 if __name__ == '__main__':
-    os.chdir('..')
+    import numpy as np
+    from _config import Config
+    import pandas as pd
+    from SelfNet import SelfNet
+    from data_generator import GenericData, prepare_train
     name = 'SelfNet_lr_test'
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     torch.set_default_device(device)
