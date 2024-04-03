@@ -1,6 +1,7 @@
 """
 Contains functions for training and testing a PyTorch model.
-Based on https://github.com/mrdbourke/pytorch-deep-learning, got refined by me over time by adding average meters, gradient clipping, logging, including k-folds, etc.
+Based on https://github.com/mrdbourke/pytorch-deep-learning, 
+got refined by me over time by adding average meters, gradient clipping, logging, including k-folds, etc.
 Is currently made for kl div loss, but can easily be changed for different applications
 """
 import logging
